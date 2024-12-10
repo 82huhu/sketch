@@ -27,4 +27,9 @@ public class CurvedLine implements Saveable {
     public Node getNode() {
         return this.drawingLine;
     }
+
+    @Override
+    public void delete(Pane canvasPane) {
+        canvasPane.getChildren().remove(this.drawingLine);
+    }
 }

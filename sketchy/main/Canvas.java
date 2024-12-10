@@ -1,5 +1,6 @@
 package sketchy.main;
 
+import cs15.fnl.sketchySupport.CS15FileIO;
 import javafx.event.ActionEvent;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
@@ -8,13 +9,12 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.stage.Window;
 import sketchy.commands.*;
 import sketchy.shapes.*;
 
 import java.util.ArrayList;
 import java.util.Stack;
-
-import static java.lang.Math.*;
 
 
 public class Canvas {
@@ -27,19 +27,24 @@ public class Canvas {
     private ColorPicker colorPicker;
     private boolean isSelecting;
     private ArrayList<Selectable> shapes;
+    private ArrayList<Saveable> saveables;
     private Selectable selectedShape;
     private boolean creatingShape;
+    private boolean isTranslating;
+    private boolean isResizing;
+    private boolean isRotating;
     private double angle;
     private double initialHeight;
     private double initialWidth;
+    private double initialRotation;
     private double ogX;
     private double ogY;
-    private double releasedX;
-    private double releasedY;
     private Commands command;
     private Stack<Commands> undoStack;
     private Stack<Commands> redoStack;
     private Commands translateShape;
+    private Commands resizeShape;
+    private Commands rotateShape;
 
     public Canvas(Pane canvasPane, VBox controlPane) {
         this.isDrawLine = false;
@@ -48,11 +53,15 @@ public class Canvas {
         this.creatingShape = false;
         this.angle = 0;
         this.shapes = new ArrayList<>();
+        this.saveables = new ArrayList<>();
         this.canvasPane = canvasPane;
         this.controlPane = controlPane;
         this.command = null;
         this.undoStack = new Stack<>();
         this.redoStack = new Stack<>();
+        this.isTranslating = false;
+        this.isResizing = false;
+        this.isRotating = false;
 
         this.setUpRadioButtons(controlPane);
         this.setUpControlPane(controlPane);
@@ -61,7 +70,7 @@ public class Canvas {
 
         this.canvasPane.setOnMousePressed((MouseEvent e) -> this.click(e));
         this.canvasPane.setOnMouseDragged((MouseEvent e) -> this.drag(e));
-        this.canvasPane.setOnMouseReleased((MouseEvent e) -> this.released(e));
+        this.canvasPane.setOnMouseReleased((MouseEvent e) -> this.released());
         this.canvasPane.setFocusTraversable(false);
     }
 
@@ -153,9 +162,11 @@ public class Canvas {
 
         Button save = new Button("save");
         controlPane.getChildren().add(save);
+        save.setOnAction((ActionEvent e) -> this.save());
 
         Button load = new Button("load");
         controlPane.getChildren().add(load);
+        load.setOnAction((ActionEvent e) -> this.load());
 
     }
 
@@ -197,6 +208,8 @@ public class Canvas {
         if (this.selectedShape != null) {
             this.ogX = this.selectedShape.getCenter().getX();
             this.ogY = this.selectedShape.getCenter().getY();
+            this.initialRotation = this.selectedShape.getRotate();
+
             if (this.selectedShapeEnum == null) {
                 this.initialHeight = this.selectedShape.getHeight();
                 this.initialWidth = this.selectedShape.getWidth();
@@ -234,36 +247,51 @@ public class Canvas {
         if(this.selectedShape != null) {
             if(event.isShiftDown() && event.isControlDown()) {
                 this.rotateAndResize(currLoc);
+                this.isResizing = true;
+                this.isRotating = true;
             } else if(event.isShiftDown() || this.creatingShape) {
                 //resizes shape
                 this.resize(currLoc);
+                this.isResizing = true;
             } else if(event.isControlDown()) {
                 //rotates shape
                 this.rotate(this.selectedShape.getCenter(), currLoc);
+                this.isRotating = true;
             } else {
                 //translates shape
                 this.translate(this.selectedShape.getCenter(), currLoc);
-                this.translateShape.execute();
+                this.isTranslating = true;
             }
 
         }
     }
 
-    private void released(MouseEvent event) {
+    private void released() {
         if(this.selectedShape != null) {
-            this.releasedX = this.selectedShape.getCenter().getX();
-            this.releasedY = this.selectedShape.getCenter().getY();
-            if(this.translateShape != null) {
+            if(this.translateShape != null && this.isTranslating) {
                 this.command = this.translateShape;
                 this.undoStack.push(this.command);
                 this.redoStack.clear();
+                this.isTranslating = false;
+            }
+            if(this.resizeShape != null && this.isResizing) {
+                this.command = this.resizeShape;
+                this.undoStack.push(this.command);
+                this.redoStack.clear();
+                this.isResizing = false;
+            }
+            if(this.rotateShape != null && this.isRotating) {
+                this.command = this.rotateShape;
+                this.undoStack.push(this.command);
+                this.redoStack.clear();
+                this.isResizing = false;
             }
         }
     }
 
     private void drawShape(MouseEvent event) {
         Commands drawShape = new CreateShape(this.selectedShapeEnum.getShape(), this.colorPicker,
-                this.shapes, this.canvasPane, event);
+                this.shapes, this.saveables, this.canvasPane, event);
         drawShape.execute();
         this.select(event);
         this.command = drawShape;
@@ -292,7 +320,7 @@ public class Canvas {
 
     private void createLine(double x, double y){
         this.curvedLine = new CurvedLine(this.colorPicker.getValue());
-        Commands drawLine = new DrawLine(x, y, this.curvedLine, this.colorPicker, this.canvasPane);
+        Commands drawLine = new DrawLine(x, y, this.saveables, this.curvedLine, this.canvasPane);
         drawLine.execute();
         this.command = drawLine;
         this.undoStack.push(this.command);
@@ -314,38 +342,18 @@ public class Canvas {
     }
 
     private void translate(Point2D curr, Point2D newCurr) {
-        this.translateShape = new TranslateShape(curr, newCurr, this.selectedShape, this.ogX, this.ogY, this.releasedX, this.releasedY);
-
-//        double dx = newCurr.getX() - curr.getX();
-//        double dy = newCurr.getY() - curr.getY();
-//
-//        double newX = curr.getX() + dx;
-//        double newY = curr.getY() + dy;
-//
-//        this.selectedShape.setCenter(newX, newY);
+        this.translateShape = new TranslateShape(curr, newCurr, this.selectedShape, this.ogX, this.ogY);
+        this.translateShape.execute();
     }
 
     private void rotate(Point2D curr, Point2D newCurr) {
-        double centerY = this.selectedShape.getCenter().getY();
-        double centerX = this.selectedShape.getCenter().getX();
-
-        double angle = atan2(newCurr.getY()-centerY, newCurr.getX()-centerX) -
-                atan2(curr.getY()-centerY, curr.getX()-centerX);
-
-        this.angle = angle;
-
-        double angleDeg = Math.toDegrees(angle);
-        this.selectedShape.setRotate(angleDeg);
+        this.rotateShape = new RotateShape(this.selectedShape, this.angle, curr, newCurr, this.initialRotation);
+        this.rotateShape.execute();
     }
 
     private void resize(Point2D curr) {
-        Point2D center = this.selectedShape.getCenter();
-        Point2D rotatedCurr = this.selectedShape.rotatePoint(curr, center, -this.selectedShape.getRotate());
-        double dx = Math.abs(rotatedCurr.getX() - center.getX());
-        double dy = Math.abs(rotatedCurr.getY() - center.getY());
-        this.selectedShape.setWidth(this.initialWidth + dx*2);
-        this.selectedShape.setHeight(this.initialHeight + dy*2);
-        this.selectedShape.setCenter(center.getX(), center.getY());
+        this.resizeShape = new ResizeShape(this.initialWidth, this.initialHeight, this.selectedShape, curr);
+        this.resizeShape.execute();
     }
 
     private void rotateAndResize(Point2D curr) {
@@ -370,6 +378,78 @@ public class Canvas {
             this.command = lower;
             this.undoStack.push(this.command);
             this.redoStack.clear();
+        }
+    }
+
+    public void save() {
+        CS15FileIO file = new CS15FileIO();
+        Window stage = this.canvasPane.getScene().getWindow();
+        String fileName = file.getFileName(true, stage);
+
+        if(fileName == null) {
+            System.out.println("Save operation canceled!");
+            return;
+        }
+
+        file.openWrite(fileName);
+        for(Saveable saveable: this.saveables) {
+            file.writeString(saveable.toString());
+        }
+        file.closeWrite();
+    }
+
+    public void load() {
+        if(this.saveables != null) {
+            this.saveables.clear();
+        }
+        if(this.shapes != null) {
+            this.shapes.clear();
+        }
+
+        CS15FileIO file = new CS15FileIO();
+        Window stage = this.canvasPane.getScene().getWindow();
+        String fileName = file.getFileName(false, stage);
+        file.openRead(fileName);
+
+        while(file.hasMoreData()) {
+            String saveableType = file.readString();
+            int red;
+            int green;
+            int blue;
+
+            switch(saveableType) {
+                case "line":
+                    red = file.readInt();
+                    green = file.readInt();
+                    blue = file.readInt();
+                    double x = file.readDouble();
+                    double y = file.readDouble();
+                    CurvedLine line = new CurvedLine(Color.BLACK);
+                    line.addPoint(x, y);
+                    line.setFill(Color.rgb(red, green, blue));
+                    line.addPoint(x, y);
+                    this.saveables.add(line);
+                    line.draw(this.canvasPane);
+                    break;
+                case "ellipse":
+                    red = file.readInt();
+                    green = file.readInt();
+                    blue = file.readInt();
+                    double centerX = file.readInt();
+                    double centerY = file.readInt();
+                    double width = file.readDouble();
+                    double height = file.readDouble();
+                    double angle = file.readDouble();
+                    MyEllipse ellipse = new MyEllipse();
+                    ellipse.setLocation(centerX, centerY);
+                    ellipse.setWidth(width);
+                    ellipse.setHeight(height);
+                    ellipse.setFill(Color.rgb(red, green, blue));
+                    ellipse.setRotate(angle);
+                    this.saveables.add(ellipse);
+                    ellipse.draw(this.canvasPane);
+                    break;
+            }
         }
     }
 

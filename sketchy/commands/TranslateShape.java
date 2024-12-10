@@ -12,14 +12,12 @@ public class TranslateShape implements Commands {
     private double newX;
     private double newY;
 
-    public TranslateShape(Point2D curr, Point2D newCurr, Selectable selectedShape, double ogX, double ogY, double releasedX, double releasedY) {
+    public TranslateShape(Point2D curr, Point2D newCurr, Selectable selectedShape, double ogX, double ogY) {
         this.curr = curr;
         this.newCurr = newCurr;
         this.selectedShape = selectedShape;
         this.ogX = ogX;
         this.ogY = ogY;
-        this.newX = releasedX;
-        this.newY = releasedY;
     }
 
     @Override

@@ -16,8 +16,8 @@ public class MyRectangle implements Selectable {
     public MyRectangle() {
         this.rect = new Rectangle();
 
-        this.rect.setHeight(1);
-        this.rect.setWidth(1);
+        this.rect.setHeight(30);
+        this.rect.setWidth(30);
     }
 
     @Override
