@@ -1,4 +1,5 @@
 package sketchy.shapes;
+import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polyline;
@@ -21,5 +22,9 @@ public class CurvedLine implements Saveable {
 
     public void setFill(Color color) {
         this.drawingLine.setFill(color);
+    }
+
+    public Node getNode() {
+        return this.drawingLine;
     }
 }

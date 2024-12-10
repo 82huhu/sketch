@@ -1,6 +1,6 @@
 package sketchy.commands;
 
-public class LowerShape implements Commandable {
+public class LowerShape implements Commands {
     @Override
     public void undo() {
 
@@ -8,6 +8,11 @@ public class LowerShape implements Commandable {
 
     @Override
     public void redo() {
+
+    }
+
+    @Override
+    public void execute() {
 
     }
 }

@@ -8,9 +8,11 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import sketchy.commands.*;
 import sketchy.shapes.*;
 
 import java.util.ArrayList;
+import java.util.Stack;
 
 import static java.lang.Math.*;
 
@@ -30,6 +32,9 @@ public class Canvas {
     private double angle;
     private double initialHeight;
     private double initialWidth;
+    private Commands command;
+    private Stack<Commands> undoStack;
+    private Stack<Commands> redoStack;
 
     public Canvas(Pane canvasPane, VBox controlPane) {
         this.isDrawLine = false;
@@ -40,6 +45,9 @@ public class Canvas {
         this.shapes = new ArrayList<>();
         this.canvasPane = canvasPane;
         this.controlPane = controlPane;
+        this.command = null;
+        this.undoStack = new Stack<>();
+        this.redoStack = new Stack<>();
 
         this.setUpRadioButtons(controlPane);
         this.setUpControlPane(controlPane);
@@ -131,9 +139,11 @@ public class Canvas {
 
         Button undo = new Button("undo");
         controlPane.getChildren().add(undo);
+        undo.setOnAction((ActionEvent e) -> this.undoAction());
 
         Button redo = new Button("redo");
         controlPane.getChildren().add(redo);
+        redo.setOnAction((ActionEvent e) -> this.redoAction());
 
         Button save = new Button("save");
         controlPane.getChildren().add(save);
@@ -144,17 +154,40 @@ public class Canvas {
     }
 
     private void fillAction() {
-        if(this.selectedShape != null) {
-            Color selectedColor = this.colorPicker.getValue();
-            this.selectedShape.changeColor(selectedColor);
-        }
+//        if(this.selectedShape != null) {
+//            Color selectedColor = this.colorPicker.getValue();
+//            this.selectedShape.changeColor(selectedColor);
+//        }
+        Commands fill= new FillShape(this.selectedShape, this.colorPicker);
+        this.commandExecuteStack(fill);
     }
 
     private void deleteAction() {
-        if(this.selectedShape != null) {
-            this.shapes.remove(this.selectedShape);
-            this.selectedShape.delete(this.canvasPane);
+        Commands delete = new DeleteShape(this.selectedShape, this.shapes, this.canvasPane);
+        delete.execute();
+        this.commandExecuteStack(delete);
+    }
+
+    private void undoAction() {
+        if(!this.undoStack.isEmpty()) {
+            Commands command = this.undoStack.pop();
+            this.redoStack.push(command);
+            command.undo();
         }
+    }
+
+    private void redoAction() {
+        if(!this.redoStack.isEmpty()) {
+            Commands command = this.redoStack.pop();
+            this.undoStack.push(command);
+            command.redo();
+        }
+    }
+
+    private void commandExecuteStack(Commands command) {
+        command.execute();
+        this.undoStack.push(this.command);
+        this.redoStack.clear();
     }
 
     private void click(MouseEvent event) {
@@ -209,17 +242,10 @@ public class Canvas {
     }
 
     private void drawShape(MouseEvent event) {
-        Selectable shape = this.selectedShapeEnum.getShape();
-        shape.setFill(this.colorPicker.getValue());
-        this.shapes.add(shape);
-        shape.setLocation(event.getX(), event.getY());
-        shape.draw(this.canvasPane);
-
-        //selects the newly drawn shape
+        Commands drawShape = new CreateShape(this.selectedShapeEnum.getShape(), this.colorPicker,
+                this.shapes, this.canvasPane, event);
+        this.commandExecuteStack(drawShape);
         this.select(event);
-
-        Point2D currLoc = new Point2D(event.getX(), event.getY());
-        this.resize(currLoc);
     }
 
     private void select(MouseEvent event) {
@@ -243,8 +269,8 @@ public class Canvas {
 
     private void createLine(double x, double y){
         this.curvedLine = new CurvedLine(this.colorPicker.getValue());
-        this.curvedLine.addPoint(x, y);
-        this.curvedLine.draw(this.canvasPane);
+        Commands drawLine = new DrawLine(x, y, this.curvedLine, this.colorPicker, this.canvasPane);
+        this.commandExecuteStack(drawLine);
     }
 
     private void penDrawOnDrag(double x, double y) {

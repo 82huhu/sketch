@@ -15,7 +15,7 @@ public class MyEllipse implements Selectable {
 
     public MyEllipse() {
         this.ellipse = new Ellipse();
-        this.ellipse.setFill(Color.BLACK);
+
         this.ellipse.setRadiusX(1);
         this.ellipse.setRadiusY(1);
     }

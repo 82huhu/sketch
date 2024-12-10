@@ -16,7 +16,6 @@ public class MyRectangle implements Selectable {
     public MyRectangle() {
         this.rect = new Rectangle();
 
-        this.rect.setFill(Color.BLACK);
         this.rect.setHeight(1);
         this.rect.setWidth(1);
     }
