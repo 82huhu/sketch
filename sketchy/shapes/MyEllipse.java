@@ -32,6 +32,16 @@ public class MyEllipse implements Selectable {
         this.ellipse.setCenterY(y);
     }
 
+//    @Override
+//    public void setCenterX(double x) {
+//        this.ellipse.setCenterX(x);
+//    }
+//
+//    @Override
+//    public void setCenterY(double y) {
+//        this.ellipse.setCenterY(y);
+//    }
+
     @Override
     public Point2D getCenter() {
         return new Point2D(this.ellipse.getCenterX(), this.ellipse.getCenterY());
@@ -114,17 +124,17 @@ public class MyEllipse implements Selectable {
         this.ellipse.setRotate(degrees);
     }
 
-    @Override
-    public void resize(double ogWidth, double ogHeight, Point2D curr) {
-        Point2D center = this.getCenter();
-        Point2D rotatedCurr = this.rotatePoint(curr, center, this.ellipse.getRotate());
-        double dx = Math.abs(rotatedCurr.getX() - center.getX());
-        double dy = Math.abs(rotatedCurr.getY() - center.getY());
-        this.setWidth(ogWidth + dx*2);
-        this.setHeight(ogHeight + dy*2);
-        this.ellipse.setCenterX(center.getX());
-        this.ellipse.setCenterY(center.getY());
-    }
+//    @Override
+//    public void resize(double ogWidth, double ogHeight, Point2D curr) {
+//        Point2D center = this.getCenter();
+//        Point2D rotatedCurr = this.rotatePoint(curr, center, this.ellipse.getRotate());
+//        double dx = Math.abs(rotatedCurr.getX() - center.getX());
+//        double dy = Math.abs(rotatedCurr.getY() - center.getY());
+//        this.setWidth(ogWidth + dx*2);
+//        this.setHeight(ogHeight + dy*2);
+//        this.ellipse.setCenterX(center.getX());
+//        this.ellipse.setCenterY(center.getY());
+//    }
 
     @Override
     public Node getShape() {

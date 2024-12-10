@@ -3,7 +3,6 @@ package sketchy.main;
 import javafx.event.ActionEvent;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
@@ -31,8 +30,8 @@ public class Canvas {
     private double angle;
     private double initialHeight;
     private double initialWidth;
-    private double initialMouseX;
-    private double initialMouseY;
+   
+
 
     public Canvas(Pane canvasPane, VBox controlPane) {
         this.isDrawLine = false;
@@ -43,6 +42,7 @@ public class Canvas {
         this.shapes = new ArrayList<>();
         this.canvasPane = canvasPane;
         this.controlPane = controlPane;
+
 
         this.setUpRadioButtons(controlPane);
         this.setUpControlPane(controlPane);
@@ -196,7 +196,7 @@ public class Canvas {
             if(event.isControlDown()) {
                 this.rotate(this.selectedShape.getCenter(), currLoc);
             } else if(event.isShiftDown() || this.creatingShape) {
-                this.selectedShape.resize(this.initialWidth, this.initialHeight, currLoc);
+                this.resize(this.initialWidth, this.initialHeight, currLoc);
             } else {
                 this.translate(this.selectedShape.getCenter(), currLoc);
             }
@@ -217,7 +217,7 @@ public class Canvas {
         this.select(event);
 
         Point2D currLoc = new Point2D(event.getX(), event.getY());
-        this.selectedShape.resize(this.initialWidth, this.initialHeight, currLoc);
+        this.resize(this.initialWidth, this.initialHeight, currLoc);
     }
 
     private void select(MouseEvent event) {
@@ -280,6 +280,16 @@ public class Canvas {
 
         double angleDeg = Math.toDegrees(angle);
         this.selectedShape.setRotate(angleDeg);
+    }
+
+    private void resize(double ogWidth, double ogHeight, Point2D curr) {
+        Point2D center = this.selectedShape.getCenter();
+        Point2D rotatedCurr = this.selectedShape.rotatePoint(curr, center, this.selectedShape.getRotate());
+        double dx = Math.abs(rotatedCurr.getX() - center.getX());
+        double dy = Math.abs(rotatedCurr.getY() - center.getY());
+        this.selectedShape.setWidth(ogWidth + dx*2);
+        this.selectedShape.setHeight(ogHeight + dy*2);
+        this.selectedShape.setCenter(center.getX(), center.getY());
     }
 
     private void raise() {
