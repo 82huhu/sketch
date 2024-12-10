@@ -12,7 +12,6 @@ public class CreateShape implements Commands {
     private ColorPicker colorPicker;
     private ArrayList<Selectable> shapes;
     private Pane canvasPane;
-    private boolean addToPane;
     private MouseEvent event;
 
     public CreateShape(Selectable selectedShapeEnum, ColorPicker colorPicker,
@@ -21,20 +20,19 @@ public class CreateShape implements Commands {
         this.colorPicker = colorPicker;
         this.shapes = shapes;
         this.canvasPane = canvasPane;
-        this.addToPane = true;
         this.event = event;
     }
 
     @Override
     public void undo() {
-        this.addToPane = false;
         this.shapes.remove(this.shapes.size() - 1);
         this.canvasPane.getChildren().remove(this.selectedShapeEnum.getShape());
     }
 
     @Override
     public void redo() {
-        this.execute();
+        this.shapes.add(this.selectedShapeEnum);
+        this.canvasPane.getChildren().add(this.selectedShapeEnum.getShape());
     }
 
 

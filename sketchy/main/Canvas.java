@@ -32,9 +32,14 @@ public class Canvas {
     private double angle;
     private double initialHeight;
     private double initialWidth;
+    private double ogX;
+    private double ogY;
+    private double releasedX;
+    private double releasedY;
     private Commands command;
     private Stack<Commands> undoStack;
     private Stack<Commands> redoStack;
+    private Commands translateShape;
 
     public Canvas(Pane canvasPane, VBox controlPane) {
         this.isDrawLine = false;
@@ -56,6 +61,7 @@ public class Canvas {
 
         this.canvasPane.setOnMousePressed((MouseEvent e) -> this.click(e));
         this.canvasPane.setOnMouseDragged((MouseEvent e) -> this.drag(e));
+        this.canvasPane.setOnMouseReleased((MouseEvent e) -> this.released(e));
         this.canvasPane.setFocusTraversable(false);
     }
 
@@ -154,18 +160,21 @@ public class Canvas {
     }
 
     private void fillAction() {
-//        if(this.selectedShape != null) {
-//            Color selectedColor = this.colorPicker.getValue();
-//            this.selectedShape.changeColor(selectedColor);
-//        }
-        Commands fill= new FillShape(this.selectedShape, this.colorPicker);
-        this.commandExecuteStack(fill);
+        if(this.selectedShape != null) {
+           Commands fill = new FillShape(this.selectedShape, this.colorPicker);
+            fill.execute();
+            this.command = fill;
+            this.undoStack.push(this.command);
+            this.redoStack.clear();
+        }
     }
 
     private void deleteAction() {
         Commands delete = new DeleteShape(this.selectedShape, this.shapes, this.canvasPane);
         delete.execute();
-        this.commandExecuteStack(delete);
+        this.command = delete;
+        this.undoStack.push(this.command);
+        this.redoStack.clear();
     }
 
     private void undoAction() {
@@ -184,17 +193,15 @@ public class Canvas {
         }
     }
 
-    private void commandExecuteStack(Commands command) {
-        command.execute();
-        this.undoStack.push(this.command);
-        this.redoStack.clear();
-    }
-
     private void click(MouseEvent event) {
-        if(this.selectedShape != null && this.selectedShapeEnum == null) {
-            this.initialHeight = this.selectedShape.getHeight();
-            this.initialWidth = this.selectedShape.getWidth();
-        }
+        if (this.selectedShape != null) {
+            this.ogX = this.selectedShape.getCenter().getX();
+            this.ogY = this.selectedShape.getCenter().getY();
+            if (this.selectedShapeEnum == null) {
+                this.initialHeight = this.selectedShape.getHeight();
+                this.initialWidth = this.selectedShape.getWidth();
+            }
+    }
 
         //drawing line
         if(this.isDrawLine){
@@ -236,16 +243,32 @@ public class Canvas {
             } else {
                 //translates shape
                 this.translate(this.selectedShape.getCenter(), currLoc);
+                this.translateShape.execute();
             }
 
+        }
+    }
+
+    private void released(MouseEvent event) {
+        if(this.selectedShape != null) {
+            this.releasedX = this.selectedShape.getCenter().getX();
+            this.releasedY = this.selectedShape.getCenter().getY();
+            if(this.translateShape != null) {
+                this.command = this.translateShape;
+                this.undoStack.push(this.command);
+                this.redoStack.clear();
+            }
         }
     }
 
     private void drawShape(MouseEvent event) {
         Commands drawShape = new CreateShape(this.selectedShapeEnum.getShape(), this.colorPicker,
                 this.shapes, this.canvasPane, event);
-        this.commandExecuteStack(drawShape);
+        drawShape.execute();
         this.select(event);
+        this.command = drawShape;
+        this.undoStack.push(this.command);
+        this.redoStack.clear();
     }
 
     private void select(MouseEvent event) {
@@ -270,7 +293,10 @@ public class Canvas {
     private void createLine(double x, double y){
         this.curvedLine = new CurvedLine(this.colorPicker.getValue());
         Commands drawLine = new DrawLine(x, y, this.curvedLine, this.colorPicker, this.canvasPane);
-        this.commandExecuteStack(drawLine);
+        drawLine.execute();
+        this.command = drawLine;
+        this.undoStack.push(this.command);
+        this.redoStack.clear();
     }
 
     private void penDrawOnDrag(double x, double y) {
@@ -288,13 +314,15 @@ public class Canvas {
     }
 
     private void translate(Point2D curr, Point2D newCurr) {
-        double dx = newCurr.getX() - curr.getX();
-        double dy = newCurr.getY() - curr.getY();
+        this.translateShape = new TranslateShape(curr, newCurr, this.selectedShape, this.ogX, this.ogY, this.releasedX, this.releasedY);
 
-        double newX = curr.getX() + dx;
-        double newY = curr.getY() + dy;
-
-        this.selectedShape.setCenter(newX, newY);
+//        double dx = newCurr.getX() - curr.getX();
+//        double dy = newCurr.getY() - curr.getY();
+//
+//        double newX = curr.getX() + dx;
+//        double newY = curr.getY() + dy;
+//
+//        this.selectedShape.setCenter(newX, newY);
     }
 
     private void rotate(Point2D curr, Point2D newCurr) {
@@ -327,47 +355,21 @@ public class Canvas {
 
     private void raise() {
         if (this.selectedShape != null) {
-            int currShapeIndex = this.shapes.indexOf(this.selectedShape);
-            int currItemInPane = this.canvasPane.getChildren().indexOf(this.selectedShape.getShape());
-
-            if (currItemInPane + 1 < this.canvasPane.getChildren().size() ) {
-                if (currShapeIndex + 1 < this.shapes.size()) {
-                    //move shape up in ArrayList logically
-                    int nextShapeInArray = currShapeIndex + 1;
-                    Selectable nextShape = this.shapes.get(nextShapeInArray);
-                    int nextShapeInPane = this.canvasPane.getChildren().indexOf(nextShape.getShape());
-                    if (nextShapeInPane - currItemInPane == 1) {
-                        this.shapes.remove(currShapeIndex);
-                        this.shapes.add(currShapeIndex + 1, this.selectedShape);
-                    }
-                }
-                //move shape up in Pane graphically
-                this.canvasPane.getChildren().remove(currItemInPane);
-                this.canvasPane.getChildren().add(currItemInPane + 1, this.selectedShape.getShape());
-            }
+            Commands raise = new RaiseShape(this.shapes, this.selectedShape, this.canvasPane);
+            raise.execute();
+            this.command = raise;
+            this.undoStack.push(this.command);
+            this.redoStack.clear();
         }
     }
 
     private void lower() {
         if(this.selectedShape != null) {
-            int currShapeIndex = this.shapes.indexOf(this.selectedShape);
-            int currItemInPane = this.canvasPane.getChildren().indexOf(this.selectedShape.getShape());
-
-            if(currItemInPane - 1 >= 0) {
-                if(currShapeIndex - 1 >= 0) {
-                    //move shape up in ArrayList logically
-                    int prevShapeInArray = currShapeIndex - 1;
-                    Selectable prevShape = this.shapes.get(prevShapeInArray);
-                    int prevShapeInPane = this.canvasPane.getChildren().indexOf(prevShape.getShape());
-                    if(currItemInPane - prevShapeInPane == 1) {
-                        this.shapes.remove(currShapeIndex);
-                        this.shapes.add(currShapeIndex - 1, this.selectedShape);
-                    }
-                }
-                //move shape up in Pane graphically
-                this.canvasPane.getChildren().remove(currItemInPane);
-                this.canvasPane.getChildren().add(currItemInPane - 1, this.selectedShape.getShape());
-            }
+            Commands lower = new LowerShape(this.shapes, this.selectedShape, this.canvasPane);
+            lower.execute();
+            this.command = lower;
+            this.undoStack.push(this.command);
+            this.redoStack.clear();
         }
     }
 

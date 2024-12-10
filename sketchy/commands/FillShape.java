@@ -29,10 +29,8 @@ public class FillShape implements Commands {
 
     @Override
     public void execute() {
-        if(this.selectedShape != null) {
-            Color selectedColor = this.colorPicker.getValue();
-            this.selectedShape.changeColor(selectedColor);
-            this.newColor = this.selectedShape.getColor();
-        }
+        Color selectedColor = this.colorPicker.getValue();
+        this.selectedShape.changeColor(selectedColor);
+        this.newColor = this.selectedShape.getColor();
     }
 }
