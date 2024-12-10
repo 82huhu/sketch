@@ -3,7 +3,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polyline;
 
-public class CurvedLine {
+public class CurvedLine implements Saveable {
     Polyline drawingLine;
 
     public CurvedLine(Color color) {

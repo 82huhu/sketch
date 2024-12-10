@@ -5,7 +5,7 @@ import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
-public interface Selectable {
+public interface Selectable extends Saveable {
     public void setLocation(double x, double y);
     public void setCenter(double x, double y);
 //    public void setCenterX(double x);
