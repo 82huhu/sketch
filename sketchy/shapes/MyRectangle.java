@@ -1,6 +1,7 @@
 package sketchy.shapes;
 
 import javafx.geometry.Point2D;
+import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -16,8 +17,8 @@ public class MyRectangle implements Selectable {
         this.rect = new Rectangle();
 
         this.rect.setFill(Color.BLACK);
-        this.rect.setHeight(50);
-        this.rect.setWidth(50);
+        this.rect.setHeight(1);
+        this.rect.setWidth(1);
     }
 
     @Override
@@ -27,9 +28,9 @@ public class MyRectangle implements Selectable {
     }
 
     @Override
-    public void setCenter(double x, double y, double dx, double dy) {
-        this.rect.setX(x - dx / 2);
-        this.rect.setY(y - dy / 2);
+    public void setCenter(double x, double y) {
+        this.rect.setX(x - this.rect.getWidth()/2);
+        this.rect.setY(y- this.rect.getHeight()/2);
     }
 
     @Override
@@ -83,6 +84,24 @@ public class MyRectangle implements Selectable {
         this.degrees = degrees;
         this.rect.setRotate(degrees);
     }
+
+    @Override
+    public void resize(double ogWidth, double ogHeight, Point2D curr) {
+        Point2D center = this.getCenter();
+        Point2D rotatedCurr = this.rotatePoint(curr, center, this.rect.getRotate());
+        double dx = Math.abs(rotatedCurr.getX() - center.getX());
+        double dy = Math.abs(rotatedCurr.getY() - center.getY());
+        this.rect.setWidth(ogWidth + dx*2);
+        this.rect.setHeight(ogHeight + dy*2);
+        this.rect.setX(center.getX() - this.rect.getWidth()/2);
+        this.rect.setY(center.getY() - this.rect.getHeight()/2);
+    }
+
+    @Override
+    public Node getShape() {
+        return this.rect;
+    }
+
 
     @Override
     public Point2D rotatePoint(Point2D pointsToRotate, Point2D rotateAround, double degrees) {

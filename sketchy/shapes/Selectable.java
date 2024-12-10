@@ -1,12 +1,13 @@
 package sketchy.shapes;
 
 import javafx.geometry.Point2D;
+import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
 public interface Selectable {
     public void setLocation(double x, double y);
-    public void setCenter(double x, double y, double dx, double dy);
+    public void setCenter(double x, double y);
     public Point2D getCenter();
     public Point2D getLocation();
     public double getHeight();
@@ -23,6 +24,10 @@ public interface Selectable {
     public Color getColor();
     public double getRotate();
     public void setRotate(double degrees);
+
+    public void resize(double ogWidth, double ogHeight, Point2D curr);
+    public Node getShape();
+
 
     public Point2D rotatePoint(Point2D pointsToRotate, Point2D rotateAround, double degrees);
 }

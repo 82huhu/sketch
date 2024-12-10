@@ -3,6 +3,7 @@ package sketchy.main;
 import javafx.event.ActionEvent;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
@@ -12,7 +13,7 @@ import sketchy.shapes.*;
 
 import java.util.ArrayList;
 
-import static java.lang.Math.atan2;
+import static java.lang.Math.*;
 
 
 public class Canvas {
@@ -26,11 +27,19 @@ public class Canvas {
     private boolean isSelecting;
     private ArrayList<Selectable> shapes;
     private Selectable selectedShape;
+    private boolean creatingShape;
+    private double angle;
+    private double initialHeight;
+    private double initialWidth;
+    private double initialMouseX;
+    private double initialMouseY;
 
     public Canvas(Pane canvasPane, VBox controlPane) {
         this.isDrawLine = false;
         this.isLasso = false;
         this.isSelecting = false;
+        this.creatingShape = false;
+        this.angle = 0;
         this.shapes = new ArrayList<>();
         this.canvasPane = canvasPane;
         this.controlPane = controlPane;
@@ -42,7 +51,6 @@ public class Canvas {
 
         this.canvasPane.setOnMousePressed((MouseEvent e) -> this.click(e));
         this.canvasPane.setOnMouseDragged((MouseEvent e) -> this.drag(e));
-        //this.canvasPane.setOnKeyPressed((KeyEvent e) -> this.onKeyPress(e));
         this.canvasPane.setFocusTraversable(false);
     }
 
@@ -62,32 +70,32 @@ public class Canvas {
         selectShape.setSelected(false);
         controlPane.getChildren().add(selectShape);
         selectShape.setToggleGroup(drawingOptionsGroup);
-        selectShape.setOnAction((ActionEvent e)-> {this.isDrawLine = false; this.isSelecting = true;});
+        selectShape.setOnAction((ActionEvent e)-> {this.isDrawLine = false; this.creatingShape = false; this.isSelecting = true;});
 
         RadioButton drawWithPen = new RadioButton("draw with pen");
         selectShape.setSelected(false);
         controlPane.getChildren().add(drawWithPen);
         drawWithPen.setToggleGroup(drawingOptionsGroup);
-        drawWithPen.setOnAction(ActionEvent -> {this.isLasso = false; this.isDrawLine = true;});
+        drawWithPen.setOnAction(ActionEvent -> {this.isLasso = false; this.creatingShape = false; this.isDrawLine = true;});
 
         RadioButton lassoDraw = new RadioButton("draw with lasso");
         selectShape.setSelected(false);
         controlPane.getChildren().add(lassoDraw);
         lassoDraw.setToggleGroup(drawingOptionsGroup);
-        lassoDraw.setOnAction(ActionEvent -> {this.isLasso = true; this.isDrawLine = true;});
+        lassoDraw.setOnAction(ActionEvent -> {this.isLasso = true; this.creatingShape = false; this.isDrawLine = true;});
 
         RadioButton drawRect = new RadioButton("draw rectangle");
         drawRect.setToggleGroup(drawingOptionsGroup);
         selectShape.setSelected(false);
         controlPane.getChildren().add(drawRect);
-        drawRect.setOnAction(ActionEvent -> {this.isSelecting = false;
+        drawRect.setOnAction(ActionEvent -> {this.isSelecting = false; this.creatingShape = true;
             this.radioButtonClick(ShapesEnum.RECTANGLE);});
 
         RadioButton drawEllipse = new RadioButton("draw ellipse");
         selectShape.setSelected(false);
         controlPane.getChildren().add(drawEllipse);
         drawEllipse.setToggleGroup(drawingOptionsGroup);
-        drawEllipse.setOnAction(ActionEvent -> {this.isSelecting = false;
+        drawEllipse.setOnAction(ActionEvent -> {this.isSelecting = false; this.creatingShape = true;
             this.radioButtonClick(ShapesEnum.ELLIPSE);});
 
     }
@@ -114,9 +122,11 @@ public class Canvas {
 
         Button raise = new Button("raise");
         controlPane.getChildren().add(raise);
+        raise.setOnAction((ActionEvent e) -> this.raise());
 
         Button lower = new Button("lower");
         controlPane.getChildren().add(lower);
+        lower.setOnAction((ActionEvent e) -> this.lower());
 
         Label operationsLabel = new Label("Operations");
         controlPane.getChildren().add(operationsLabel);
@@ -151,6 +161,13 @@ public class Canvas {
 
 
     private void click(MouseEvent event) {
+        if(this.selectedShape != null && this.selectedShapeEnum == null) {
+            this.initialHeight = this.selectedShape.getHeight();
+            this.initialWidth = this.selectedShape.getWidth();
+            this.initialMouseX = event.getX();
+            this.initialMouseY = event.getY();
+        }
+
         if(this.isDrawLine){
             //deselects selected shape, if there is one
             if(this.selectedShape != null) {
@@ -178,8 +195,8 @@ public class Canvas {
         if(this.selectedShape != null) {
             if(event.isControlDown()) {
                 this.rotate(this.selectedShape.getCenter(), currLoc);
-            } else if(event.isShiftDown()) {
-                this.resize(this.selectedShape.getCenter(), currLoc);
+            } else if(event.isShiftDown() || this.creatingShape) {
+                this.selectedShape.resize(this.initialWidth, this.initialHeight, currLoc);
             } else {
                 this.translate(this.selectedShape.getCenter(), currLoc);
             }
@@ -190,25 +207,35 @@ public class Canvas {
     private void drawShape(MouseEvent event) {
         Selectable shape = this.selectedShapeEnum.getShape();
         shape.setFill(this.colorPicker.getValue());
-        this.shapes.add(0, shape);
+        this.shapes.add(shape);
         shape.setLocation(event.getX(), event.getY());
         shape.draw(this.canvasPane);
+
+        if(this.selectedShape != null) {
+            this.selectedShape.setStroke(Color.TRANSPARENT);
+        }
+        this.select(event);
+
+        Point2D currLoc = new Point2D(event.getX(), event.getY());
+        this.selectedShape.resize(this.initialWidth, this.initialHeight, currLoc);
     }
 
     private void select(MouseEvent event) {
-        for (Selectable shape : this.shapes) {
+        for (int i = this.shapes.size()-1; i >=0; i--) {
+            Selectable shape = this.shapes.get(i);
+
             //deselects all shapes except the most recently clicked shape
             if(this.selectedShape != null) {
                 this.selectedShape.setStroke(Color.TRANSPARENT);
                 this.selectedShape = null;
             }
-
             if (shape.isSelected(event.getX(), event.getY())) {
                 this.selectedShape = shape;
                 this.selectedShape.setStroke(Color.LAWNGREEN);
                 this.selectedShape.setStrokeWidth(2.5);
                 return;
             }
+
         }
     }
 
@@ -239,7 +266,7 @@ public class Canvas {
         double newX = curr.getX() + dx;
         double newY = curr.getY() + dy;
 
-        this.selectedShape.setLocation(newX, newY);
+        this.selectedShape.setCenter(newX, newY);
     }
 
     private void rotate(Point2D curr, Point2D newCurr) {
@@ -249,18 +276,56 @@ public class Canvas {
         double angle = atan2(newCurr.getY()-centerY, newCurr.getX()-centerX) -
                 atan2(curr.getY()-centerY, curr.getX()-centerX);
 
+        this.angle = angle;
+
         double angleDeg = Math.toDegrees(angle);
         this.selectedShape.setRotate(angleDeg);
     }
 
-    private void resize(Point2D curr, Point2D newCurr) {
-        double dx = newCurr.getX() - curr.getX();
-        double dy = newCurr.getY() - curr.getY();
+    private void raise() {
+        if(this.selectedShape != null) {
+            int currShapeIndex = this.shapes.indexOf(this.selectedShape);
+            int currItemInPane = this.canvasPane.getChildren().indexOf(this.selectedShape.getShape());
 
-        this.selectedShape.setCenter(this.selectedShape.getCenter().getX(),
-                this.selectedShape.getCenter().getY(), dx, dy);
-        this.selectedShape.setHeight(dy);
-        this.selectedShape.setWidth(dx);
+            if(currItemInPane + 1 < this.canvasPane.getChildren().size()) {
+                if(currShapeIndex + 1 < this.shapes.size()) {
+                    //move shape up in ArrayList logically
+                    int nextShapeInArray = currShapeIndex + 1;
+                    Selectable nextShape = this.shapes.get(nextShapeInArray);
+                    int nextShapeInPane = this.canvasPane.getChildren().indexOf(nextShape.getShape());
+                    if(nextShapeInPane - currItemInPane == 1) {
+                        this.shapes.remove(currShapeIndex);
+                        this.shapes.add(currShapeIndex + 1, this.selectedShape);
+                    }
+                }
+                //move shape up in Pane graphically
+                this.canvasPane.getChildren().remove(currItemInPane);
+                this.canvasPane.getChildren().add(currItemInPane+1, this.selectedShape.getShape());
+            }
+        }
+    }
+
+    private void lower() {
+        if(this.selectedShape != null) {
+            int currShapeIndex = this.shapes.indexOf(this.selectedShape);
+            int currItemInPane = this.canvasPane.getChildren().indexOf(this.selectedShape.getShape());
+
+            if(currItemInPane - 1 >= 0) {
+                if(currShapeIndex - 1 >= 0) {
+                    //move shape up in ArrayList logically
+                    int prevShapeInArray = currShapeIndex - 1;
+                    Selectable prevShape = this.shapes.get(prevShapeInArray);
+                    int prevShapeInPane = this.canvasPane.getChildren().indexOf(prevShape.getShape());
+                    if(currItemInPane - prevShapeInPane == 1) {
+                        this.shapes.remove(currShapeIndex);
+                        this.shapes.add(currShapeIndex - 1, this.selectedShape);
+                    }
+                }
+                //move shape up in Pane graphically
+                this.canvasPane.getChildren().remove(currItemInPane);
+                this.canvasPane.getChildren().add(currItemInPane - 1, this.selectedShape.getShape());
+            }
+        }
     }
 
 }

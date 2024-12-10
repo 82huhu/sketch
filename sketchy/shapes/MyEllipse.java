@@ -1,6 +1,7 @@
 package sketchy.shapes;
 
 import javafx.geometry.Point2D;
+import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Ellipse;
@@ -14,10 +15,9 @@ public class MyEllipse implements Selectable {
 
     public MyEllipse() {
         this.ellipse = new Ellipse();
-
         this.ellipse.setFill(Color.BLACK);
-        this.ellipse.setRadiusX(30);
-        this.ellipse.setRadiusY(30);
+        this.ellipse.setRadiusX(1);
+        this.ellipse.setRadiusY(1);
     }
 
     @Override
@@ -27,7 +27,7 @@ public class MyEllipse implements Selectable {
     }
 
     @Override
-    public void setCenter(double x, double y, double dx, double dy) {
+    public void setCenter(double x, double y) {
         this.ellipse.setCenterX(x);
         this.ellipse.setCenterY(y);
     }
@@ -54,12 +54,12 @@ public class MyEllipse implements Selectable {
 
     @Override
     public void setHeight(double height) {
-        this.ellipse.setRadiusY(height);
+        this.ellipse.setRadiusY(height/2);
     }
 
     @Override
     public void setWidth(double width) {
-        this.ellipse.setRadiusX(width);
+        this.ellipse.setRadiusX(width/2);
     }
 
     @Override
@@ -112,6 +112,23 @@ public class MyEllipse implements Selectable {
     public void setRotate(double degrees) {
         this.angle = degrees;
         this.ellipse.setRotate(degrees);
+    }
+
+    @Override
+    public void resize(double ogWidth, double ogHeight, Point2D curr) {
+        Point2D center = this.getCenter();
+        Point2D rotatedCurr = this.rotatePoint(curr, center, this.ellipse.getRotate());
+        double dx = Math.abs(rotatedCurr.getX() - center.getX());
+        double dy = Math.abs(rotatedCurr.getY() - center.getY());
+        this.setWidth(ogWidth + dx*2);
+        this.setHeight(ogHeight + dy*2);
+        this.ellipse.setCenterX(center.getX());
+        this.ellipse.setCenterY(center.getY());
+    }
+
+    @Override
+    public Node getShape() {
+        return this.ellipse;
     }
 
     @Override
