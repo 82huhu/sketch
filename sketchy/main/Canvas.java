@@ -16,10 +16,14 @@ import sketchy.shapes.*;
 import java.util.ArrayList;
 import java.util.Stack;
 
-
+/**
+ * Canvas is the top level logic class. In this class, I create and give function to the
+ * radio buttons (select shape, draw with pen, draw with lasso, draw rectangle, and draw
+ * ellipse), the color picker, and buttons (fill, delete, raise, lower, undo, redo, save,
+ * and reload).
+ */
 public class Canvas {
     private Pane canvasPane;
-    private VBox controlPane;
     private ShapesEnum selectedShapeEnum;
     private boolean isDrawLine;
     private CurvedLine curvedLine;
@@ -46,6 +50,11 @@ public class Canvas {
     private Commands resizeShape;
     private Commands rotateShape;
 
+    /**
+     * The Canvas() constructor takes in my canvasPane and controlPane. It calls helper methods
+     * to set up my control pane's characteristics, radio buttons, color picker, and buttons.
+     * It also calls methods to set up actions when mouse is pressed, dragged, and released.
+     */
     public Canvas(Pane canvasPane, VBox controlPane) {
         this.isDrawLine = false;
         this.isLasso = false;
@@ -55,7 +64,6 @@ public class Canvas {
         this.shapes = new ArrayList<>();
         this.saveables = new ArrayList<>();
         this.canvasPane = canvasPane;
-        this.controlPane = controlPane;
         this.command = null;
         this.undoStack = new Stack<>();
         this.redoStack = new Stack<>();
@@ -63,8 +71,8 @@ public class Canvas {
         this.isResizing = false;
         this.isRotating = false;
 
-        this.setUpRadioButtons(controlPane);
         this.setUpControlPane(controlPane);
+        this.setUpRadioButtons(controlPane);
         this.setColorPicker(controlPane);
         this.setUpButtons(controlPane);
 
@@ -74,6 +82,9 @@ public class Canvas {
         this.canvasPane.setFocusTraversable(false);
     }
 
+    /**
+     * setUpControlPane() sets up controlPane's characteristics (color, alignment, spacing, etc.)
+     */
     private void setUpControlPane(VBox controlPane) {
         controlPane.setStyle("-fx-background-color: orange;");
         this.canvasPane.setStyle("-fx-background-color: skyblue;");
@@ -82,6 +93,9 @@ public class Canvas {
         controlPane.setSpacing(Constants.CONTROL_SPACING);
     }
 
+    /**
+     * setUpRadioButtons() creates the five radio buttons.
+     */
     private void setUpRadioButtons(VBox controlPane) {
         Label drawingOptionsLabel = new Label("Drawing Options");
         controlPane.getChildren().add(drawingOptionsLabel);
@@ -91,36 +105,46 @@ public class Canvas {
         selectShape.setSelected(false);
         controlPane.getChildren().add(selectShape);
         selectShape.setToggleGroup(drawingOptionsGroup);
-        selectShape.setOnAction((ActionEvent e)-> {this.isDrawLine = false; this.creatingShape = false; this.isSelecting = true;});
+        selectShape.setOnAction((ActionEvent e)-> {this.isDrawLine = false;
+            this.creatingShape = false; this.isSelecting = true;});
+        //by toggling the applicable booleans when a radiobutton is clicked,
+        //drag() and click() know case to play.
 
         RadioButton drawWithPen = new RadioButton("draw with pen");
         selectShape.setSelected(false);
         controlPane.getChildren().add(drawWithPen);
         drawWithPen.setToggleGroup(drawingOptionsGroup);
-        drawWithPen.setOnAction(ActionEvent -> {this.isLasso = false; this.creatingShape = false; this.isDrawLine = true;});
+        drawWithPen.setOnAction(ActionEvent -> {this.selectedShapeEnum = null;this.isLasso = false;
+            this.creatingShape = false; this.isDrawLine = true;});
 
         RadioButton lassoDraw = new RadioButton("draw with lasso");
         selectShape.setSelected(false);
         controlPane.getChildren().add(lassoDraw);
         lassoDraw.setToggleGroup(drawingOptionsGroup);
-        lassoDraw.setOnAction(ActionEvent -> {this.isLasso = true; this.creatingShape = false; this.isDrawLine = true;});
+        lassoDraw.setOnAction(ActionEvent -> {this.isLasso = true; this.creatingShape = false;
+            this.isDrawLine = true;});
 
         RadioButton drawRect = new RadioButton("draw rectangle");
         drawRect.setToggleGroup(drawingOptionsGroup);
         selectShape.setSelected(false);
         controlPane.getChildren().add(drawRect);
         drawRect.setOnAction(ActionEvent -> {this.isSelecting = false; this.creatingShape = true;
-            this.radioButtonClick(ShapesEnum.RECTANGLE);});
+            this.chooseShapeDraw(ShapesEnum.RECTANGLE);});
+        //the shapesEnum indicates which shape to draw
 
         RadioButton drawEllipse = new RadioButton("draw ellipse");
         selectShape.setSelected(false);
         controlPane.getChildren().add(drawEllipse);
         drawEllipse.setToggleGroup(drawingOptionsGroup);
-        drawEllipse.setOnAction(ActionEvent -> {this.isSelecting = false; this.creatingShape = true;
-            this.radioButtonClick(ShapesEnum.ELLIPSE);});
+        drawEllipse.setOnAction(ActionEvent -> {this.isSelecting = false;
+            this.creatingShape = true;
+            this.chooseShapeDraw(ShapesEnum.ELLIPSE);});
 
     }
 
+    /**
+     * setColorPicker() creates a color picker and adds it to the controlPane.
+     */
     private void setColorPicker(VBox controlPane) {
         Label setColorLabel= new Label("Set Color");
         controlPane.getChildren().add(setColorLabel);
@@ -129,6 +153,10 @@ public class Canvas {
         controlPane.getChildren().add(this.colorPicker);
     }
 
+    /**
+     * setUpButtons() creates and calls helper methods to add functionality to
+     * all the buttons.
+     */
     private void setUpButtons(VBox controlPane) {
         Label ShapeOptionsLabel = new Label("Shape Options");
         controlPane.getChildren().add(ShapeOptionsLabel);
@@ -170,9 +198,14 @@ public class Canvas {
 
     }
 
+    /**
+     * fillAction() is a helper method for the Fill button. If there is a shape selected, a new
+     * fill command is created and executed. That command is added to the undoStack and the
+     * redoStack is cleared.
+     */
     private void fillAction() {
         if(this.selectedShape != null) {
-           Commands fill = new FillShape(this.selectedShape, this.colorPicker);
+            Commands fill = new FillShape(this.selectedShape, this.colorPicker);
             fill.execute();
             this.command = fill;
             this.undoStack.push(this.command);
@@ -180,22 +213,41 @@ public class Canvas {
         }
     }
 
+    /**
+     * deleteAction() is a helper method for the Delete button. If a shape is selected a new
+     * DeleteShape command is created and executed. That command is added to the undoStack and
+     * the redoStack is cleared.
+     */
     private void deleteAction() {
-        Commands delete = new DeleteShape(this.selectedShape, this.shapes, this.saveables, this.canvasPane);
-        delete.execute();
-        this.command = delete;
-        this.undoStack.push(this.command);
-        this.redoStack.clear();
+        if(this.selectedShape != null) {
+            Commands delete = new DeleteShape(this.selectedShape, this.shapes, this.saveables,
+                    this.canvasPane);
+            delete.execute();
+            this.command = delete;
+            this.undoStack.push(this.command);
+            this.redoStack.clear();
+        }
     }
 
+    /**
+     * undoAction() is a helper method for the undo button. If undoStack is not empty, the
+     * most recent command is popped off the undo stack onto the redo stack. That command's
+     * undo method is called.
+     */
     private void undoAction() {
         if(!this.undoStack.isEmpty()) {
             Commands command = this.undoStack.pop();
             this.redoStack.push(command);
             command.undo();
         }
+        System.out.println(this.undoStack);
     }
 
+    /**
+     * redoAction() is a helper method for the redo button. If redoStack is not empty, the
+     * most recent command is popped off the redo stack onto the undo stack. That command's
+     * redo method is called.
+     */
     private void redoAction() {
         if(!this.redoStack.isEmpty()) {
             Commands command = this.redoStack.pop();
@@ -204,7 +256,13 @@ public class Canvas {
         }
     }
 
+    /**
+     * click() is a helper called every time the mouse is clicked. It contains functionality for
+     * drawing lines, drawing shapes, and selecting.
+     */
     private void click(MouseEvent event) {
+        //instantiate initial x, y, rotation, height, and width for resize, rotate, and translate
+        //commands' use.
         if (this.selectedShape != null) {
             this.ogX = this.selectedShape.getCenter().getX();
             this.ogY = this.selectedShape.getCenter().getY();
@@ -214,49 +272,54 @@ public class Canvas {
                 this.initialHeight = this.selectedShape.getHeight();
                 this.initialWidth = this.selectedShape.getWidth();
             }
-    }
+        }
 
-        //drawing line
-        if(this.isDrawLine){
-            //deselects selected shape, if there is one
-            if(this.selectedShape != null) {
+            //drawing line
+        if (this.isDrawLine) { //booleans defined by radiobuttons
+            if (this.selectedShape != null) {
+                //deselects selected shape, if there is one
                 this.selectedShape.setStroke(Color.TRANSPARENT);
                 this.selectedShape = null;
             }
-
             this.createLine(event.getX(), event.getY());
-            return;
         }
 
         //drawing shapes
-        if(this.selectedShapeEnum != null && !this.isSelecting){
+        if (this.selectedShapeEnum != null && !this.isSelecting) {
             this.drawShape(event);
         }
 
         //selecting
-        if(this.isSelecting) {
+        if (this.isSelecting) {
             this.select(event);
         }
     }
 
+    /**
+     * drag() is a helper method which is called when the mouse is dragged. It contains
+     * functionality for rotate, resize, simultaneous rotate and resize, and translate.
+     */
     private void drag(MouseEvent event) {
         this.penDrawOnDrag(event.getX(),event.getY());
 
         Point2D currLoc = new Point2D(event.getX(), event.getY());
-
         if(this.selectedShape != null) {
             if(event.isShiftDown() && event.isControlDown()) {
+                //rotate and resize at the same time
                 this.rotateAndResize(currLoc);
                 this.isResizing = true;
                 this.isRotating = true;
+
             } else if(event.isShiftDown() || this.creatingShape) {
                 //resizes shape
                 this.resize(currLoc);
                 this.isResizing = true;
+
             } else if(event.isControlDown()) {
                 //rotates shape
                 this.rotate(this.selectedShape.getCenter(), currLoc);
                 this.isRotating = true;
+
             } else {
                 //translates shape
                 this.translate(this.selectedShape.getCenter(), currLoc);
@@ -266,6 +329,10 @@ public class Canvas {
         }
     }
 
+    /**
+     * released() is as helper method which is called when mouse click is released. It contains
+     * functionality for pushing translate, resize, and rotate commands into the undoStack.
+     */
     private void released() {
         if(this.selectedShape != null) {
             if(this.translateShape != null && this.isTranslating) {
@@ -289,20 +356,31 @@ public class Canvas {
         }
     }
 
+    /**
+     * drawShape() is a helper method called when the mouse is clicked that draws a shape.
+     * It creates and executes a CreateShape command and pushes that command onto the undoStack.
+     * It clears the redoStack.
+     */
     private void drawShape(MouseEvent event) {
         Commands drawShape = new CreateShape(this.selectedShapeEnum.getShape(), this.colorPicker,
                 this.shapes, this.saveables, this.canvasPane, event);
         drawShape.execute();
-        this.select(event);
+        this.select(event); //automatically select newly created shape
         this.command = drawShape;
         this.undoStack.push(this.command);
         this.redoStack.clear();
     }
 
+    /**
+     * select() is as helper method called on mouse click. When called,
+     * it traverses through the shapes array from the front (bottom layer)
+     * and deselects all shapes. It then sets the shape clicked by the mouse to
+     * the selected shape + highlights it graphically. This makes it so only one shape is
+     * selected, and if several are stacked the top one is selected.
+     */
     private void select(MouseEvent event) {
         for (int i = this.shapes.size()-1; i >=0; i--) {
             Selectable shape = this.shapes.get(i);
-
             //deselects all shapes except the most recently clicked shape
             if(this.selectedShape != null) {
                 this.selectedShape.setStroke(Color.TRANSPARENT);
@@ -318,6 +396,11 @@ public class Canvas {
         }
     }
 
+    /**
+     * createLine() is a helper method called on mouse click which creates the first point
+     * in drawing a line. It creates and executes a DrawLine command, pushes that command
+     * onto the undoStack, and clears the redoStack.
+     */
     private void createLine(double x, double y){
         this.curvedLine = new CurvedLine(this.colorPicker.getValue());
         Commands drawLine = new DrawLine(x, y, this.saveables, this.curvedLine, this.canvasPane);
@@ -327,6 +410,10 @@ public class Canvas {
         this.redoStack.clear();
     }
 
+    /**
+     * penDrawOnDrag() is a helper method called on mouse drag which adds points to the original
+     * DrawLine.
+     */
     private void penDrawOnDrag(double x, double y) {
         if(this.curvedLine !=null && this.isDrawLine){
             if(this.isLasso) {
@@ -336,31 +423,57 @@ public class Canvas {
         }
     }
 
-    private void radioButtonClick(ShapesEnum shape) {
+    /**
+     * chooseShapeDraw() is a helper method called when the radio button for ellipse
+     * or square is clicked. It makes it so the next click will draw the inputted shape.
+     */
+    private void chooseShapeDraw(ShapesEnum shape) {
         this.isDrawLine = false;
         this.selectedShapeEnum = shape;
     }
 
+    /**
+     * translate is a helper method called on mouse drag which moves the selected shape with the mouse.
+     * It creates and executes a new TranslateShape command.
+     */
     private void translate(Point2D curr, Point2D newCurr) {
         this.translateShape = new TranslateShape(curr, newCurr, this.selectedShape, this.ogX, this.ogY);
         this.translateShape.execute();
     }
 
+    /**
+     * rotate is a helper method called on mouse drag which rotates the selected shape with the mouse.
+     * It creates and executes a new RotateShape command.
+     */
     private void rotate(Point2D curr, Point2D newCurr) {
         this.rotateShape = new RotateShape(this.selectedShape, this.angle, curr, newCurr, this.initialRotation);
         this.rotateShape.execute();
     }
 
+    /**
+     * resize is a helper method called on mouse drag which resizes the selected shape with the mouse.
+     * It creates and executes a new ResizeShape command.
+     */
     private void resize(Point2D curr) {
-        this.resizeShape = new ResizeShape(this.initialWidth, this.initialHeight, this.selectedShape, curr);
+        this.resizeShape = new ResizeShape(this.initialWidth, this.initialHeight,
+                this.selectedShape, curr);
         this.resizeShape.execute();
     }
 
+    /**
+     * rotateAndResize is a helper method called when both ctrl and shift are held down. This makes
+     * makes it so users can rotate and resize at the same time.
+     */
     private void rotateAndResize(Point2D curr) {
         this.rotate(this.selectedShape.getCenter(), curr);
         this.resize(curr);
     }
 
+    /**
+     * raise() is a helper method called on Raise button click which raises a selected shape
+     * up a layer. It creates and executes a RaiseShape command, pushes that command onto
+     * the undoStack, and clears the redoStack.
+     */
     private void raise() {
         if (this.selectedShape != null) {
             Commands raise = new RaiseShape(this.shapes, this.saveables, this.selectedShape, this.canvasPane);
@@ -371,6 +484,11 @@ public class Canvas {
         }
     }
 
+    /**
+     * lower() is a helper method called on Lower button click which raises a selected shape
+     * down a layer. It creates and executes a RaiseShape command, pushes that command onto
+     * the undoStack, and clears the redoStack.
+     */
     private void lower() {
         if(this.selectedShape != null) {
             Commands lower = new LowerShape(this.shapes, this.saveables, this.selectedShape, this.canvasPane);
@@ -381,6 +499,10 @@ public class Canvas {
         }
     }
 
+    /**
+     * save() writes a text file with each line and shape's attributes, which is saved
+     * on the computer.
+     */
     public void save() {
         CS15FileIO file = new CS15FileIO();
         Window stage = this.canvasPane.getScene().getWindow();
@@ -398,6 +520,10 @@ public class Canvas {
         file.closeWrite();
     }
 
+    /**
+     * load() loads saved files so the text files saved in save() are translated back
+     * into the images.
+     */
     public void load() {
         CS15FileIO file = new CS15FileIO();
         Window stage = this.canvasPane.getScene().getWindow();
@@ -408,6 +534,7 @@ public class Canvas {
             return;
         }
 
+        //clears the saveable + shape ArrayLists, the canvasPane, and the undo/redo stacks.
         if(this.saveables != null) {
             this.saveables.clear();
         }
@@ -422,7 +549,6 @@ public class Canvas {
             this.redoStack.clear();
         }
 
-
         file.openRead(fileName);
 
         while(file.hasMoreData()) {
@@ -434,7 +560,7 @@ public class Canvas {
                     int green = file.readInt();
                     int blue = file.readInt();
                     CurvedLine line = new CurvedLine(Color.rgb(red, green, blue));
-                    for(int i=0; i<this.curvedLine.getLength()-1; i++) {
+                    for(int i=0; i<this.curvedLine.getLength()-2; i+=2) {
                         double x = file.readDouble();
                         double y = file.readDouble();
                         line.addPoint(x, y);
@@ -442,21 +568,20 @@ public class Canvas {
                     this.saveables.add(line);
                     line.draw(this.canvasPane);
                     break;
-
                 case "ellipse":
                     red = file.readInt();
                     green = file.readInt();
                     blue = file.readInt();
                     double centerX = file.readDouble();
                     double centerY = file.readDouble();
-                    double width = file.readDouble()*2;
-                    double height = file.readDouble()*2;
+                    double width = file.readDouble();
+                    double height = file.readDouble();
                     double angle = file.readDouble();
                     MyEllipse ellipse = new MyEllipse();
                     ellipse.setCenter(centerX, centerY);
-                    ellipse.setWidth(width);
-                    ellipse.setHeight(height);
-                    ellipse.setFill(Color.rgb(red, green, blue));
+                    ellipse.setWidth(width*2);
+                    ellipse.setHeight(height*2);
+                    ellipse.changeColor(Color.rgb(red, green, blue));
                     ellipse.setRotate(angle);
                     this.saveables.add(ellipse);
                     this.shapes.add(ellipse);
@@ -475,7 +600,7 @@ public class Canvas {
                     rect.setLocation(rectX, rectY);
                     rect.setWidth(rectWidth);
                     rect.setHeight(rectHeight);
-                    rect.setFill(Color.rgb(red, green, blue));
+                    rect.changeColor(Color.rgb(red, green, blue));
                     rect.setRotate(rectAngle);
                     this.saveables.add(rect);
                     this.shapes.add(rect);
@@ -487,5 +612,4 @@ public class Canvas {
             }
         }
     }
-
 }

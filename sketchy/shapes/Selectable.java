@@ -5,6 +5,9 @@ import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
+/**
+ * Selectable is an interface which encapsulates the shapes
+ */
 public interface Selectable extends Saveable {
     public void setLocation(double x, double y);
     public void setCenter(double x, double y);
@@ -22,7 +25,6 @@ public interface Selectable extends Saveable {
     public boolean isSelected(double x, double y);
     public void setStroke(Color color);
     public void setStrokeWidth(double width);
-    public void setFill(Color color);
     public Color getColor();
     public double getRotate();
     public void setRotate(double degrees);

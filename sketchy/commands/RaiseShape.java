@@ -6,6 +6,9 @@ import sketchy.shapes.Selectable;
 
 import java.util.ArrayList;
 
+/**
+ * RaiseShape is a command which moves a selected shape up a layer
+ */
 public class RaiseShape implements Commands {
     private ArrayList<Selectable> shapes;
     private ArrayList<Saveable> saveables;
@@ -25,6 +28,9 @@ public class RaiseShape implements Commands {
         this.currItemInPane = this.currShapeIndex;
     }
 
+    /**
+     * undo() moves the Shape back down a layer
+     */
     @Override
     public void undo() {
         this.shapes.remove(this.newIndex);
@@ -35,6 +41,9 @@ public class RaiseShape implements Commands {
         this.canvasPane.getChildren().add(this.currItemInPane, this.selectedShape.getShape());
     }
 
+    /**
+     * redo() undoes undo and moves the shape back up a layer
+     */
     @Override
     public void redo() {
         this.shapes.remove(this.currShapeIndex);
@@ -45,6 +54,9 @@ public class RaiseShape implements Commands {
         this.canvasPane.getChildren().add(this.newPaneIndex, this.selectedShape.getShape());
     }
 
+    /**
+     * execute moves the selected shape up a layer both logically and graphically
+     */
     @Override
     public void execute() {
         this.currShapeIndex = this.shapes.indexOf(this.selectedShape);
@@ -61,12 +73,14 @@ public class RaiseShape implements Commands {
                     this.saveables.remove(this.currShapeIndex);
                     this.shapes.add(this.currShapeIndex + 1, this.selectedShape);
                     this.saveables.add(this.currShapeIndex + 1, this.selectedShape);
+
                     this.newIndex = this.shapes.indexOf(this.selectedShape);
                 }
             }
             //move shape up in Pane graphically
             this.canvasPane.getChildren().remove(this.currItemInPane);
-            this.canvasPane.getChildren().add(this.currItemInPane + 1, this.selectedShape.getShape());
+            this.canvasPane.getChildren().add(this.currItemInPane + 1,
+                    this.selectedShape.getShape());
             this.newPaneIndex = this.canvasPane.getChildren().indexOf(this.selectedShape.getShape());
         }
     }

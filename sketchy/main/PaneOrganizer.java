@@ -4,6 +4,9 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 
+/**
+ * PaneOrganizer is my top-level graphics class
+ */
 public class PaneOrganizer {
     private BorderPane root;
 

@@ -5,6 +5,7 @@ import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import sketchy.main.Constants;
 
 import static java.lang.Math.*;
 
@@ -64,11 +65,6 @@ public class MyRectangle implements Selectable {
     }
 
     @Override
-    public void setFill(Color color) {
-        this.rect.setFill(color);
-    }
-
-    @Override
     public Color getColor() {
         return (Color) this.rect.getFill();
     }
@@ -97,7 +93,8 @@ public class MyRectangle implements Selectable {
 
         Point2D point = new Point2D(pointsToRotate.getX() - rotateAround.getX(),
                 pointsToRotate.getY() - rotateAround.getY());
-        point = new Point2D(point.getX()*cosine + point.getY()*sine, -point.getX()*sine + point.getY()*cosine);
+        point = new Point2D(point.getX()*cosine + point.getY()*sine, -point.getX()*sine +
+                point.getY()*cosine);
         point = new Point2D(point.getX() + rotateAround.getX(), point.getY() + rotateAround.getY());
 
         return point;
@@ -136,8 +133,10 @@ public class MyRectangle implements Selectable {
 
     @Override
     public String toString() {
-        return "rectangle " + (int)(this.getColor().getRed()*255) + " " + (int)(this.getColor().getGreen()*255) + " " +
-                (int)(this.getColor().getBlue()*255) + " " + this.getLocation().getX() + " " +
+        return "rectangle " + (int)(this.getColor().getRed()* Constants.RGB_MULTIPLIER) + " " +
+                (int)(this.getColor().getGreen()*Constants.RGB_MULTIPLIER) + " " +
+                (int)(this.getColor().getBlue()*Constants.RGB_MULTIPLIER) + " " +
+                this.getLocation().getX() + " " +
                 this.getLocation().getY() + " " + this.getWidth() + " " + this.getHeight() + " " +
                 this.getRotate();
     }

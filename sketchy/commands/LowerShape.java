@@ -6,6 +6,9 @@ import sketchy.shapes.Selectable;
 
 import java.util.ArrayList;
 
+/**
+ * LowerShape is a command which moves a selected shape down a layer
+ */
 public class LowerShape implements Commands {
     private ArrayList<Selectable> shapes;
     private ArrayList<Saveable> saveables;
@@ -25,16 +28,25 @@ public class LowerShape implements Commands {
         this.currItemInPane = this.canvasPane.getChildren().indexOf(this.selectedShape.getShape());
 
     }
+
+    /**
+     * undo() moves the shape back to its original position both logically and graphically
+     */
     @Override
     public void undo() {
         this.shapes.remove(this.newIndex);
         this.saveables.remove(this.newIndex);
+
         this.shapes.add(this.currShapeIndex, this.selectedShape);
         this.saveables.add(this.currShapeIndex, this.selectedShape);
+
         this.canvasPane.getChildren().remove(this.newPaneIndex);
         this.canvasPane.getChildren().add(this.currItemInPane, this.selectedShape.getShape());
     }
 
+    /**
+     * redo() undoes undo and moves the shape back down
+     */
     @Override
     public void redo() {
         this.shapes.remove(this.currShapeIndex);
@@ -45,6 +57,9 @@ public class LowerShape implements Commands {
         this.canvasPane.getChildren().add(this.newPaneIndex, this.selectedShape.getShape());
     }
 
+    /**
+     * execute() moves the shape down a layer both logically and graphically
+     */
     @Override
     public void execute() {
         this.currShapeIndex = this.shapes.indexOf(this.selectedShape);
@@ -59,6 +74,7 @@ public class LowerShape implements Commands {
                 if(this.currItemInPane - prevShapeInPane == 1) {
                     this.shapes.remove(this.currShapeIndex);
                     this.saveables.remove(this.currShapeIndex);
+
                     this.shapes.add(this.currShapeIndex - 1, this.selectedShape);
                     this.saveables.add(this.currShapeIndex - 1, this.selectedShape);
                     this.newIndex = this.shapes.indexOf(this.selectedShape);

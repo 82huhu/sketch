@@ -1,22 +1,19 @@
 package sketchy.commands;
 
-import javafx.scene.control.ColorPicker;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
 import sketchy.shapes.CurvedLine;
 import sketchy.shapes.Saveable;
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
+/**
+ * DrawLine is a command which creates a line
+ */
 public class DrawLine implements Commands {
     private double x;
     private double y;
     private CurvedLine curvedLine;
     private Pane canvasPane;
     private ArrayList<Saveable> saveable;
-
 
     public DrawLine(double x, double y, ArrayList<Saveable> saveables, CurvedLine curvedLine, Pane canvasPane) {
         this.x = x;
@@ -26,16 +23,27 @@ public class DrawLine implements Commands {
         this.saveable = saveables;
     }
 
+    /**
+     * undo() removes the line from the pane and the saveable arraylist
+     */
     @Override
     public void undo() {
-        this.canvasPane.getChildren().remove(this.curvedLine.getNode());
+        this.saveable.remove(this.curvedLine);
+        this.curvedLine.delete(this.canvasPane);
     }
 
+    /**
+     * redo() adds the line back to the pane and saveable arraylist
+     */
     @Override
     public void redo() {
-        this.canvasPane.getChildren().add(this.curvedLine.getNode());
+        this.saveable.add(this.curvedLine);
+        this.curvedLine.draw(this.canvasPane);
     }
 
+    /**
+     * execute() adds the line to the
+     */
     @Override
     public void execute() {
         this.curvedLine.addPoint(this.x, this.y);

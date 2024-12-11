@@ -5,6 +5,9 @@ import sketchy.shapes.Selectable;
 
 import static java.lang.Math.atan2;
 
+/**
+ * RotateShape rotates the shape based on the mouse
+ */
 public class RotateShape implements Commands {
     private Selectable selectedShape;
     private double angle;
@@ -21,16 +24,26 @@ public class RotateShape implements Commands {
         this.initialRotation = initialRotation;
     }
 
+    /**
+     * undo() undoes the rotation and returns the shape to its original rotation
+     */
     @Override
     public void undo() {
         this.selectedShape.setRotate(this.initialRotation);
     }
 
+    /**
+     * redo() returns the shape to its rotation after being rotated
+     */
     @Override
     public void redo() {
         this.selectedShape.setRotate(this.finalRotation);
     }
 
+    /**
+     * execute() rotates the shape by calculating the angle between the location of the
+     * mouse and the center of the shape.
+     */
     @Override
     public void execute() {
         double centerY = this.selectedShape.getCenter().getY();

@@ -1,0 +1,16 @@
+OVERVIEW:
+This program creates a drawing program where you can draw with a pen or shapes. The shapes can be manipulated
+by various buttons.
+
+Canvas is my top-level graphics class and contains class which contains classes to set up and add functionality to
+the panes, radio buttons, and buttons. It also contains methods to save and load the files.
+
+CurvedLine, MyEllipse, and MyRectangle are my Saveables, implementing my Saveables interface which give them delete()
+and toString() functionality. 
+
+Canvas is
+DESIGN CHOICES:
+
+KNOWN BUGS:
+
+HOURS: 50

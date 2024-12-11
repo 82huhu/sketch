@@ -8,6 +8,9 @@ import sketchy.shapes.Selectable;
 
 import java.util.ArrayList;
 
+/**
+ * CreateShape is a command which draws a shape on the screen.
+ */
 public class CreateShape implements Commands {
     private Selectable selectedShapeEnum;
     private ColorPicker colorPicker;
@@ -17,7 +20,8 @@ public class CreateShape implements Commands {
     private MouseEvent event;
 
     public CreateShape(Selectable selectedShapeEnum, ColorPicker colorPicker,
-                       ArrayList<Selectable> shapes, ArrayList<Saveable> saveables, Pane canvasPane, MouseEvent event) {
+                       ArrayList<Selectable> shapes, ArrayList<Saveable> saveables,
+                       Pane canvasPane, MouseEvent event) {
         this.selectedShapeEnum = selectedShapeEnum;
         this.colorPicker = colorPicker;
         this.shapes = shapes;
@@ -26,6 +30,9 @@ public class CreateShape implements Commands {
         this.saveables = saveables;
     }
 
+    /**
+     * undo() removes the shape from the pane and shapes and saveables arraylists.
+     */
     @Override
     public void undo() {
         this.shapes.remove(this.shapes.size() - 1);
@@ -33,6 +40,9 @@ public class CreateShape implements Commands {
         this.canvasPane.getChildren().remove(this.selectedShapeEnum.getShape());
     }
 
+    /**
+     * redo() adds the shape to the pane and shapes and saveables arraylists.
+     */
     @Override
     public void redo() {
         this.shapes.add(this.selectedShapeEnum);
@@ -40,13 +50,17 @@ public class CreateShape implements Commands {
         this.canvasPane.getChildren().add(this.selectedShapeEnum.getShape());
     }
 
-
+    /**
+     * execute() performs the action of drawing a shape, determined by the selectedShapeEnum.
+     */
     @Override
     public void execute() {
         Selectable shape = this.selectedShapeEnum;
-        shape.setFill(this.colorPicker.getValue());
+        shape.changeColor(this.colorPicker.getValue());
+
         this.shapes.add(shape);
         this.saveables.add(shape);
+
         shape.setLocation(this.event.getX(), this.event.getY());
         shape.draw(this.canvasPane);
     }
