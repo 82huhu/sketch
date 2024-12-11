@@ -84,23 +84,11 @@ public class MyRectangle implements Selectable {
         this.rect.setRotate(degrees);
     }
 
-//    @Override
-//    public void resize(double ogWidth, double ogHeight, Point2D curr) {
-//        Point2D center = this.getCenter();
-//        Point2D rotatedCurr = this.rotatePoint(curr, center, this.rect.getRotate());
-//        double dx = Math.abs(rotatedCurr.getX() - center.getX());
-//        double dy = Math.abs(rotatedCurr.getY() - center.getY());
-//        this.rect.setWidth(ogWidth + dx*2);
-//        this.rect.setHeight(ogHeight + dy*2);
-//        this.rect.setX(center.getX() - this.rect.getWidth()/2);
-//        this.rect.setY(center.getY() - this.rect.getHeight()/2);
-//    }
 
     @Override
     public Node getShape() {
         return this.rect;
     }
-
 
     @Override
     public Point2D rotatePoint(Point2D pointsToRotate, Point2D rotateAround, double degrees) {
@@ -120,16 +108,6 @@ public class MyRectangle implements Selectable {
         return new Point2D((this.rect.getX() + this.rect.getWidth() / 2),
                 (this.rect.getY() + this.rect.getHeight() / 2));
     }
-
-//    @Override
-//    public void setCenterX(double x) {
-//        this.rect.setX(x - this.rect.getWidth()/2);
-//    }
-//
-//    @Override
-//    public void setCenterY(double y) {
-//        this.rect.setY(y - this.rect.getHeight()/2);
-//    }
 
     @Override
     public Point2D getLocation() {
@@ -154,6 +132,14 @@ public class MyRectangle implements Selectable {
     @Override
     public void setWidth(double width) {
         this.rect.setWidth(width);
+    }
+
+    @Override
+    public String toString() {
+        return "rectangle " + (int)(this.getColor().getRed()*255) + " " + (int)(this.getColor().getGreen()*255) + " " +
+                (int)(this.getColor().getBlue()*255) + " " + this.getLocation().getX() + " " +
+                this.getLocation().getY() + " " + this.getWidth() + " " + this.getHeight() + " " +
+                this.getRotate();
     }
 
 }

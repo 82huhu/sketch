@@ -181,7 +181,7 @@ public class Canvas {
     }
 
     private void deleteAction() {
-        Commands delete = new DeleteShape(this.selectedShape, this.shapes, this.canvasPane);
+        Commands delete = new DeleteShape(this.selectedShape, this.shapes, this.saveables, this.canvasPane);
         delete.execute();
         this.command = delete;
         this.undoStack.push(this.command);
@@ -363,7 +363,7 @@ public class Canvas {
 
     private void raise() {
         if (this.selectedShape != null) {
-            Commands raise = new RaiseShape(this.shapes, this.selectedShape, this.canvasPane);
+            Commands raise = new RaiseShape(this.shapes, this.saveables, this.selectedShape, this.canvasPane);
             raise.execute();
             this.command = raise;
             this.undoStack.push(this.command);
@@ -373,7 +373,7 @@ public class Canvas {
 
     private void lower() {
         if(this.selectedShape != null) {
-            Commands lower = new LowerShape(this.shapes, this.selectedShape, this.canvasPane);
+            Commands lower = new LowerShape(this.shapes, this.saveables, this.selectedShape, this.canvasPane);
             lower.execute();
             this.command = lower;
             this.undoStack.push(this.command);
@@ -399,55 +399,90 @@ public class Canvas {
     }
 
     public void load() {
+        CS15FileIO file = new CS15FileIO();
+        Window stage = this.canvasPane.getScene().getWindow();
+        String fileName = file.getFileName(false, stage);
+
+        if(fileName == null) {
+            System.out.println("Load operation canceled!");
+            return;
+        }
+
         if(this.saveables != null) {
             this.saveables.clear();
         }
         if(this.shapes != null) {
             this.shapes.clear();
         }
+        this.canvasPane.getChildren().clear();
+        if(this.undoStack != null) {
+            this.undoStack.clear();
+        }
+        if(this.redoStack != null) {
+            this.redoStack.clear();
+        }
 
-        CS15FileIO file = new CS15FileIO();
-        Window stage = this.canvasPane.getScene().getWindow();
-        String fileName = file.getFileName(false, stage);
+
         file.openRead(fileName);
 
         while(file.hasMoreData()) {
             String saveableType = file.readString();
-            int red;
-            int green;
-            int blue;
 
             switch(saveableType) {
                 case "line":
-                    red = file.readInt();
-                    green = file.readInt();
-                    blue = file.readInt();
-                    double x = file.readDouble();
-                    double y = file.readDouble();
-                    CurvedLine line = new CurvedLine(Color.BLACK);
-                    line.addPoint(x, y);
-                    line.setFill(Color.rgb(red, green, blue));
-                    line.addPoint(x, y);
+                    int red = file.readInt();
+                    int green = file.readInt();
+                    int blue = file.readInt();
+                    CurvedLine line = new CurvedLine(Color.rgb(red, green, blue));
+                    for(int i=0; i<this.curvedLine.getLength()-1; i++) {
+                        double x = file.readDouble();
+                        double y = file.readDouble();
+                        line.addPoint(x, y);
+                    }
                     this.saveables.add(line);
                     line.draw(this.canvasPane);
                     break;
+
                 case "ellipse":
                     red = file.readInt();
                     green = file.readInt();
                     blue = file.readInt();
-                    double centerX = file.readInt();
-                    double centerY = file.readInt();
-                    double width = file.readDouble();
-                    double height = file.readDouble();
+                    double centerX = file.readDouble();
+                    double centerY = file.readDouble();
+                    double width = file.readDouble()*2;
+                    double height = file.readDouble()*2;
                     double angle = file.readDouble();
                     MyEllipse ellipse = new MyEllipse();
-                    ellipse.setLocation(centerX, centerY);
+                    ellipse.setCenter(centerX, centerY);
                     ellipse.setWidth(width);
                     ellipse.setHeight(height);
                     ellipse.setFill(Color.rgb(red, green, blue));
                     ellipse.setRotate(angle);
                     this.saveables.add(ellipse);
+                    this.shapes.add(ellipse);
                     ellipse.draw(this.canvasPane);
+                    break;
+                case "rectangle":
+                    red = file.readInt();
+                    green = file.readInt();
+                    blue = file.readInt();
+                    double rectX = file.readDouble();
+                    double rectY = file.readDouble();
+                    double rectWidth = file.readDouble();
+                    double rectHeight = file.readDouble();
+                    double rectAngle = file.readDouble();
+                    MyRectangle rect = new MyRectangle();
+                    rect.setLocation(rectX, rectY);
+                    rect.setWidth(rectWidth);
+                    rect.setHeight(rectHeight);
+                    rect.setFill(Color.rgb(red, green, blue));
+                    rect.setRotate(rectAngle);
+                    this.saveables.add(rect);
+                    this.shapes.add(rect);
+                    rect.draw(this.canvasPane);
+                    break;
+                default:
+                    file.closeRead();
                     break;
             }
         }

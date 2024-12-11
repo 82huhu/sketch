@@ -33,11 +33,11 @@ public class ResizeShape implements Commands {
     @Override
     public void execute() {
         Point2D center = this.selectedShape.getCenter();
-        Point2D rotatedCurr = this.selectedShape.rotatePoint(curr, center, -this.selectedShape.getRotate());
+        Point2D rotatedCurr = this.selectedShape.rotatePoint(this.curr, center, -this.selectedShape.getRotate());
         double dx = Math.abs(rotatedCurr.getX() - center.getX());
         double dy = Math.abs(rotatedCurr.getY() - center.getY());
         this.finalWidth = this.initialWidth + dx*2;
-        this.finalHeight = this.initialWidth + dy*2;
+        this.finalHeight = this.initialHeight + dy*2;
         this.selectedShape.setWidth(this.finalWidth);
         this.selectedShape.setHeight(this.finalHeight);
         this.selectedShape.setCenter(center.getX(), center.getY());

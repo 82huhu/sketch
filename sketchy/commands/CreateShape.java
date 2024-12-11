@@ -29,12 +29,14 @@ public class CreateShape implements Commands {
     @Override
     public void undo() {
         this.shapes.remove(this.shapes.size() - 1);
+        this.saveables.remove(this.saveables.size() - 1);
         this.canvasPane.getChildren().remove(this.selectedShapeEnum.getShape());
     }
 
     @Override
     public void redo() {
         this.shapes.add(this.selectedShapeEnum);
+        this.saveables.add(this.selectedShapeEnum);
         this.canvasPane.getChildren().add(this.selectedShapeEnum.getShape());
     }
 
