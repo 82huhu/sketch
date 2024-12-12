@@ -341,7 +341,7 @@ public class Canvas {
                 this.isTranslating = false;
             }
 
-            if(this.resizeShape != null && this.isResizing) {
+            if(this.resizeShape != null && this.isResizing && !this.creatingShape) {
                 this.command = this.resizeShape;
                 this.undoStack.push(this.command);
                 this.redoStack.clear();

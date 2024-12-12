@@ -56,19 +56,19 @@ public class MyEllipse implements Selectable {
      */
     @Override
     public double getHeight() {
-        return this.ellipse.getRadiusY()*2;
+        return this.ellipse.getRadiusY()*Constants.DOUBLE;
     }
     @Override
     public double getWidth() {
-        return this.ellipse.getRadiusX()*2;
+        return this.ellipse.getRadiusX()*Constants.DOUBLE;
     }
     @Override
     public void setHeight(double height) {
-        this.ellipse.setRadiusY(height/2);
+        this.ellipse.setRadiusY(height/Constants.HALF);
     }
     @Override
     public void setWidth(double width) {
-        this.ellipse.setRadiusX(width/2);
+        this.ellipse.setRadiusX(width/Constants.HALF);
     }
 
     /**

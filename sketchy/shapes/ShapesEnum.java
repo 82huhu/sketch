@@ -1,5 +1,8 @@
 package sketchy.shapes;
 
+/**
+ * ShapesEnum defines my Ellipse and Rectangle Enums
+ */
 public enum ShapesEnum {
     ELLIPSE,
     RECTANGLE;
