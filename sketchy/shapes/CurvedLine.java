@@ -46,7 +46,7 @@ public class CurvedLine implements Saveable {
      */
     public String pointsToString() {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < this.drawingLine.getPoints().size()-2; i+=2) {
+        for (int i = 0; i < this.drawingLine.getPoints().size(); i+=2) {
             double x = this.drawingLine.getPoints().get(i);
             double y = this.drawingLine.getPoints().get(i + 1);
             sb.append(" ").append(x).append(" ").append(y);
@@ -87,7 +87,7 @@ public class CurvedLine implements Saveable {
     @Override
     public String toString() {
         return "line " + (int)this.red + " " + (int)this.green + " "
-                + (int)this.blue + " " + this.pointsToString();
+                + (int)this.blue + " " + this.getLength() + " " + this.pointsToString();
 
     }
 }

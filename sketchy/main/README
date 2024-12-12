@@ -2,15 +2,39 @@ OVERVIEW:
 This program creates a drawing program where you can draw with a pen or shapes. The shapes can be manipulated
 by various buttons.
 
-Canvas is my top-level graphics class and contains class which contains classes to set up and add functionality to
-the panes, radio buttons, and buttons. It also contains methods to save and load the files.
+main:
+Canvas is my top-level logic class which contains methods to set up and add functionality to
+the panes (canvasPane and controlPane), radio buttons (selected, draw with pen, draw rectangle,
+draw ellipse), and buttons (fill, delete, raise, lower, undo, redo, save, and load), along with
+MouseEvents for press, drag, and release. It creates new instances of command classes to give
+functionality for all radiobutton/button function except undo, redo, save and load, whose
+methods are written in Canvas itself. Undo and redo are implemented with stacks, where commands
+are pushed onto the undoStack. When undo is pushed, the most recent command is popped off the
+undoStack onto the redoStack, and that command's undo() method is called. When redo is called,
+the opposite process occurs. Save writes the toString() of each object onto a file. Load
+interprets the Strings written in the save files into the attributes for each object that
+they represent.
 
-CurvedLine, MyEllipse, and MyRectangle are my Saveables, implementing my Saveables interface which give them delete()
-and toString() functionality. 
+shapes:
+CurvedLine, MyEllipse, and MyRectangle are my Saveables, implementing my Saveables interface
+which give them delete() and toString() functionality for saving and loading. MyEllipse and
+MyRectangle are Selectables, implementing all their methods from the Selectables interface--
+including setters and getters for their location, center height, width, rotation, color, and
+stroke, along with draw() and delete() methods to add them to the canvas, isSelected() to
+check if a mouse click is within the bounds of the shape, and rotatePoint() to rotate the
+logical points of the shapes so isSelected remains accurate for rotated shapes.
 
-Canvas is
+ShapesEnum defines my enums for Ellipse and Rectangle.
+
+commands:
+All my commands implements the Commands interface, which contains methods for undo(), redo(), and
+execute().
+
+CreateShape
+
+
 DESIGN CHOICES:
 
 KNOWN BUGS:
 
-HOURS: 50
+HOURS: 60

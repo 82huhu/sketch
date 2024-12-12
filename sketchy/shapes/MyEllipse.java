@@ -12,7 +12,7 @@ import static java.lang.Math.toRadians;
 
 /**
  * MyEllipse is an ellipse wrapper class. It implements Selectable (and by extension Saveable) and
- * defines the attributes and functionality of MyEllipse.
+ * defines the attributes and functionality of a MyEllipse.
  */
 public class MyEllipse implements Selectable {
     private Ellipse ellipse;
@@ -40,12 +40,10 @@ public class MyEllipse implements Selectable {
         this.ellipse.setCenterX(x);
         this.ellipse.setCenterY(y);
     }
-
     @Override
     public Point2D getCenter() {
         return new Point2D(this.ellipse.getCenterX(), this.ellipse.getCenterY());
     }
-
     @Override
     public Point2D getLocation() {
         return new Point2D(this.ellipse.getCenterX(), this.ellipse.getCenterY());
@@ -60,17 +58,14 @@ public class MyEllipse implements Selectable {
     public double getHeight() {
         return this.ellipse.getRadiusY()*2;
     }
-
     @Override
     public double getWidth() {
         return this.ellipse.getRadiusX()*2;
     }
-
     @Override
     public void setHeight(double height) {
         this.ellipse.setRadiusY(height/2);
     }
-
     @Override
     public void setWidth(double width) {
         this.ellipse.setRadiusX(width/2);

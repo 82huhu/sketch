@@ -11,8 +11,6 @@ import javafx.scene.paint.Color;
 public interface Selectable extends Saveable {
     public void setLocation(double x, double y);
     public void setCenter(double x, double y);
-//    public void setCenterX(double x);
-//    public void setCenterY(double y);
     public Point2D getCenter();
     public Point2D getLocation();
     public double getHeight();
@@ -28,10 +26,6 @@ public interface Selectable extends Saveable {
     public Color getColor();
     public double getRotate();
     public void setRotate(double degrees);
-
-//    public void resize(double ogWidth, double ogHeight, Point2D curr);
     public Node getShape();
-
-
     public Point2D rotatePoint(Point2D pointsToRotate, Point2D rotateAround, double degrees);
 }
