@@ -172,7 +172,7 @@ public class MyRectangle implements Selectable {
      */
     @Override
     public String toString() {
-        return "rectangle " + (int)(this.getColor().getRed()* Constants.RGB_MULTIPLIER) + " " +
+        return "rectangle " + (int)(this.getColor().getRed()*Constants.RGB_MULTIPLIER) + " " +
                 (int)(this.getColor().getGreen()*Constants.RGB_MULTIPLIER) + " " +
                 (int)(this.getColor().getBlue()*Constants.RGB_MULTIPLIER) + " " +
                 this.getLocation().getX() + " " +

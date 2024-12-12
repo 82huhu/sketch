@@ -567,8 +567,13 @@ public class Canvas {
                     int red = file.readInt();
                     int green = file.readInt();
                     int blue = file.readInt();
-
+                    int length = file.readInt(); //number of points in each line
                     CurvedLine line = new CurvedLine(Color.rgb(red, green, blue));
+                    for(int i=0; i<length; i+=2) {
+                        double x = file.readDouble();
+                        double y = file.readDouble();
+                        line.addPoint(x, y);
+                    }
                     this.saveables.add(line);
                     line.draw(this.canvasPane);
                     break;

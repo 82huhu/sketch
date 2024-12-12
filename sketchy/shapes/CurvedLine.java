@@ -87,7 +87,7 @@ public class CurvedLine implements Saveable {
     @Override
     public String toString() {
         return "line " + (int)this.red + " " + (int)this.green + " "
-                + (int)this.blue + " " + this.getLength() + " " + this.pointsToString();
+                + (int)this.blue + " " + this.pointsToString();
 
     }
 }
