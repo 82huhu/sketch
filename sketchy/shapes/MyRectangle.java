@@ -48,9 +48,7 @@ public class MyRectangle implements Selectable {
     }
 
     /**
-     * getHeight, getWidth, setHeight, and setWidth get and set the width and height for ellipse.
-     * they are multiplied/divided by two because the height and width are the diameter of
-     * the ellipse, not radius.
+     * getHeight, getWidth, setHeight, and setWidth get and set the width and height for rectangle.
      */
     @Override
     public double getHeight() {

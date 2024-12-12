@@ -100,8 +100,8 @@ public class MyEllipse implements Selectable {
      */
     @Override
     public boolean isSelected(double x, double y) {
-        Point2D point = this.rotatePoint(new Point2D(x, y),this.getCenter(), this.angle);
         //rotatePoint ensures isSelected() remains accurate for rotated shapes
+        Point2D point = this.rotatePoint(new Point2D(x, y),this.getCenter(), this.angle);
         return this.ellipse.contains(point);
     }
 
